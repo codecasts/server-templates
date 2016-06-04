@@ -1,0 +1,30 @@
+#!/bin/bash
+while read oldrev newrev ref
+do
+
+    branch=`echo $ref | cut -d/ -f3`
+
+    export GIT_DIR=/home/user/repo
+
+    if [ "develop" == "$branch" ]; then
+        echo "Deploying STAGING"
+        export GIT_WORK_TREE=/home/user/staging
+        git checkout -f $branch
+        cd /home/user/staging
+        composer install
+        php artisan migrator --force
+        gulp
+        php artisan cache:clear
+    
+    elif [ "master" == "$branch" ]; then
+        echo "Deploying PRODUCTION"
+        export GIT_WORK_TREE=/home/user/production
+        git checkout -f $branch
+        cd /home/user/production
+        composer install
+        php artisan migrator --force
+        gulp
+        php artisan cache:clear
+    fi
+
+done
