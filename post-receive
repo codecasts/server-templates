@@ -1,28 +1,35 @@
 #!/bin/bash
 while read oldrev newrev ref
+
+# Variables
+USER_PATH='/home/user'
+REPO_PATH=$USER_PATH"/repo"
+STAGING_PATH=$USER_PATH"/staging"
+PRODUCTION_PATH=$USER_PATH"/production"
+
 do
 
     branch=`echo $ref | cut -d/ -f3`
 
-    export GIT_DIR=/home/user/repo
+    export GIT_DIR=$REPO_PATH
 
     if [ "develop" == "$branch" ]; then
         echo "Deploying STAGING"
-        export GIT_WORK_TREE=/home/user/staging
+        export GIT_WORK_TREE=$STAGING_PATH
         git checkout -f $branch
-        cd /home/user/staging
+        cd $STAGING_PATH
         composer install
-        php artisan migrator --force
+        php artisan migrate --force
         gulp
         php artisan cache:clear
     
     elif [ "master" == "$branch" ]; then
         echo "Deploying PRODUCTION"
-        export GIT_WORK_TREE=/home/user/production
+        export GIT_WORK_TREE=$PRODUCTION_PATH
         git checkout -f $branch
-        cd /home/user/production
+        cd $PRODUCTION_PATH
         composer install
-        php artisan migrator --force
+        php artisan migrate --force
         gulp
         php artisan cache:clear
     fi
